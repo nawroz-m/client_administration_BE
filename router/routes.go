@@ -13,6 +13,7 @@ func SetupRoute(app *fiber.App){
 	* @access Public
 	* @dec Insert user information to DB
 	*/
-	app.Post("/api/insertdata", controllers.InserUserInfo)
+
+	app.Post("/api/insertdata",  controllers.RegisterUser)
 
 }
