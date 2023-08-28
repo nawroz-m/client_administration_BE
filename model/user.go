@@ -2,6 +2,7 @@ package model
 
 import (
 	"client_administration/config"
+	"os"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -18,6 +19,7 @@ type User struct {
 	ID    primitive.ObjectID `bson:"_id,omitempty"`
 	FirstName  string             `bson:"firstname,omitempty" validate:"required"`
 	LastName  string             `bson:"lastname,omitempty" validate:"required"`
+	Role  string             `bson:"role,omitempty" validate:"required"`
 	Email  string             `bson:"email,omitempty" validate:"required"`
 	Password  string             `bson:"password,omitempty" validate:"required"`
 	telephone  int64             `bson:"telephone,omitempty" validate:"required"`
@@ -26,8 +28,9 @@ type User struct {
 }
 
 func UserModel()(*mongo.Collection, *mongo.Client){
+	databaseName := os.Getenv("DATABASENAME")
 	client := config.Db();
-	database := client.Database("ClientAdministration")
+	database := client.Database(databaseName)
 	usersCollection := database.Collection("users")
 	return usersCollection, client
 }

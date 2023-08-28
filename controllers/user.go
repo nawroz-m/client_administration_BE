@@ -1,12 +1,15 @@
 package controllers
 
 import (
+	"client_administration/constants"
 	"client_administration/model"
 	"client_administration/utils"
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/gofiber/fiber"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func RegisterUser(c *fiber.Ctx){
@@ -26,12 +29,16 @@ func RegisterUser(c *fiber.Ctx){
 	if validateErr != nil {
 		c.Status(500).Send("Required field is compulsory")
 		return
-	}
+	} 
 
 	// Encrypt Password
-	// password := doc.Password
+	password := doc.Password
+	hash, _ := utils.HashPassword(password) 
+	doc.Password = hash
+	// match := utils.CheckPasswordHash(password, "$2a$14$B1aG24XpTJbaB63MWwJuu.YV5duLIFJbw4ecPXIpDvPqIfiqSPrN.")
+    // fmt.Println("Match:   ", match)
 
-
+	
 
 	usersCollection, client := model.UserModel()
 	defer func() {
@@ -44,6 +51,18 @@ func RegisterUser(c *fiber.Ctx){
 		fmt.Print(err)
 		panic(err)
 	}
+	userIdString, _ := insertResult.InsertedID.(primitive.ObjectID)
 
-	c.Send(insertResult.InsertedID)
+	registerUserResponse := constants.UserRegisterResponse{
+		Email: doc.Email,
+		Id:    userIdString.Hex(),
+		Message: "success",
+	}
+	jsonResponse, err := json.Marshal(registerUserResponse)
+
+
+
+
+
+	c.Send(jsonResponse)
 }
