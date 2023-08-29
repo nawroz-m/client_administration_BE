@@ -134,3 +134,22 @@ func LoginUser(c *fiber.Ctx){
 	c.Status(200).Send(jsonResponse)
 }
 
+// Update User Info
+func UpdateUserInfo(c *fiber.Ctx){
+	
+	data := c.Body()
+	var doc constants.UserInfoToUpdate
+	// Unmarshal Json Data
+	err := utils.Unmarshal([]byte(data) , &doc)
+	if err != nil {
+        fmt.Println(err)
+        c.Status(400).Send("Invalid data format")
+        return
+    }
+
+
+	fmt.Println(doc)
+
+	c.Status(200).Send(doc)
+
+}

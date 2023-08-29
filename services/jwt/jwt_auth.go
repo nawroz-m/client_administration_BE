@@ -2,7 +2,7 @@ package jwt
 
 import (
 	"os"
-	"time"
+	"strings"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -15,14 +15,14 @@ type JWTData struct {
 
 
 func GenerateJWTAccessToken(userId string, email string, password string, role string) (string, error) {
-	tokenLifeTime := 30 * 24 * 60 * 60 // 30 days in seconds
+	// tokenLifeTime := 30 * 24 * 60 * 60 // 30 days in seconds
 	secretKey := os.Getenv("SECRETKEY")
 
     // prepare claims for token
     claims := JWTData{
         StandardClaims: jwt.StandardClaims{
            // set token lifetime in timestamp
-           ExpiresAt: time.Now().Add(time.Duration(tokenLifeTime)).Unix(),
+         //   ExpiresAt: time.Now().Add(time.Duration(tokenLifeTime)).Unix(),
         },
         // add custom claims like user_id or email, 
         CustomClaims: map[string]string{
@@ -39,4 +39,22 @@ func GenerateJWTAccessToken(userId string, email string, password string, role s
      token, err := tokenString.SignedString([]byte(secretKey))
 
      return token, err
+}
+
+func VeryfiToken(authHeader string)(interface{}, interface{}, error){
+      token := strings.Split(authHeader, " ") 
+      if len(token) == 2 && strings.ToLower(token[0]) == "bearer" {
+         token = token[1:]
+      }
+      
+      claims := &JWTData{}
+      secretKey := os.Getenv("SECRETKEY")
+      stringtoken := strings.Join(token, "")
+
+
+		tokenREs, err := jwt.ParseWithClaims(stringtoken, claims, func(token *jwt.Token) (interface{}, error) {
+			return []byte(secretKey), nil
+		})
+      
+      return tokenREs, claims, err
 }

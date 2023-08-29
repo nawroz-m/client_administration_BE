@@ -2,9 +2,12 @@ package router
 
 import (
 	"client_administration/controllers"
+	"client_administration/middlewares"
 
 	"github.com/gofiber/fiber"
 )
+
+
 
 func SetupRoute(app *fiber.App){
 
@@ -22,5 +25,11 @@ func SetupRoute(app *fiber.App){
 	*/
 	app.Post("/api/login",  controllers.LoginUser)
 
-	
+	/*
+	* @api {PUT} /api/update
+	* @access Private
+	* @dec Update User Information
+	*/
+	app.Put("/api/update", middlewares.IsLogedIn, controllers.UpdateUserInfo)
+
 }
