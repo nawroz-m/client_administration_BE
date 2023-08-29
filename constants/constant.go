@@ -21,6 +21,13 @@ type UserLoginPayload struct {
 	Token  string             `bson:"token,omitempty" validate:"required"`
 }
 
+type UserLoginLocalStorage struct {
+	Id  string             `bson:"user_id,omitempty" `
+	Email  string             `bson:"email,omitempty" `
+	Password  string             `bson:"password,omitempty" `
+	Role  string             `bson:"role,omitempty" `
+}
+
 type Address struct {
     Street     string  `bson:"street,omitempty" `
     PostalCode int64  `bson:"postalcode,omitempty"`
@@ -32,6 +39,6 @@ type UserInfoToUpdate struct {
 	FirstName  string             `bson:"firstname,omitempty" `
 	LastName  string             `bson:"lastname,omitempty" `
 	Email  string             `bson:"email,omitempty" `
-	telephone  int64             `bson:"telephone,omitempty" `
+	Telephone  int64             `bson:"telephone,omitempty" `
 	PostalAddress  Address        `bson:"postaladdress,omitempty" `
 }

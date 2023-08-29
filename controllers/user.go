@@ -3,6 +3,7 @@ package controllers
 import (
 	"client_administration/constants"
 	"client_administration/model"
+	"client_administration/services"
 	"client_administration/services/jwt"
 	"client_administration/utils"
 	"context"
@@ -88,24 +89,16 @@ func LoginUser(c *fiber.Ctx){
 
 	userEmail := doc.Email
 	userPassword := doc.Password
-	usersCollection, client := model.UserModel()
-	defer func() {
-        if err := client.Disconnect(context.TODO()); err != nil {
-            panic(err)
-        }
-    }()
-
 	filter := bson.D{{"email", userEmail}}
 
 
 	// Find a user
 	var  userInfo  model.User
-	err = usersCollection.FindOne(context.TODO(), filter).Decode(&userInfo)
-	if err != nil {
-		fmt.Print(err)
-		panic(err)
+	responseErr := services.FindADoc(filter).Decode(&userInfo)
+	if responseErr != nil {
+		fmt.Print(responseErr)
 	}
-
+	
 	// Match the password and hashed password
 	match := utils.CheckPasswordHash(userPassword, userInfo.Password)
 	if match != true {
@@ -136,7 +129,6 @@ func LoginUser(c *fiber.Ctx){
 
 // Update User Info
 func UpdateUserInfo(c *fiber.Ctx){
-	
 	data := c.Body()
 	var doc constants.UserInfoToUpdate
 	// Unmarshal Json Data
@@ -147,9 +139,55 @@ func UpdateUserInfo(c *fiber.Ctx){
         return
     }
 
+	// User information
+	userData := c.Locals("user").(constants.UserLoginLocalStorage)
+	objectID, err := primitive.ObjectIDFromHex(userData.Id)
+    if err != nil {
+        fmt.Println(err)
+        c.Status(400).Send("Invalid ID format")
+        return
+    }
+	filter := bson.D{
+		{"_id",  objectID},
+		// {"email",  userData.Email},
+	}
+    
+	// Find a user
+	var  userInfo  model.User
+	responseErr := services.FindADoc(filter).Decode(&userInfo)
+	if responseErr != nil && userInfo.Email != "" {
+		fmt.Print(responseErr)
+	}
+	// Update for only provided fields
+	update := bson.D{}
+	if doc.FirstName != "" {
+        update = append(update, bson.E{"firstname", doc.FirstName})
+    }
+    if doc.LastName != "" {
+        update = append(update, bson.E{"lastname", doc.LastName})
+    }
+    if doc.Email != "" {
+        update = append(update, bson.E{"email", doc.Email})
+    }
+    if doc.Telephone != 0 {
+        update = append(update, bson.E{"telephone", doc.Telephone})
+    }
+    if doc.PostalAddress.City != "" {
 
-	fmt.Println(doc)
+        update = append(update, bson.E{"postaladdress.city", doc.PostalAddress.City})
+    }
+	if doc.PostalAddress.Street != "" {
+        update = append(update, bson.E{"postaladdress.street", doc.PostalAddress.Street})
+    }
+	if doc.PostalAddress.PostalCode != 0 {
+        update = append(update, bson.E{"postaladdress.postalcode", doc.PostalAddress.PostalCode})
+    }
+	if doc.PostalAddress.Country != "" {
+        update = append(update, bson.E{"postaladdress.country", doc.PostalAddress.Country})
+    }
 
-	c.Status(200).Send(doc)
-
+	// Update User Info
+	response := services.UpdateDocInfo(filter, update)
+    c.Status(200).Send(response)
+    
 }

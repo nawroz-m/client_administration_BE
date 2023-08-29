@@ -1,10 +1,11 @@
 package jwt
 
 import (
+	"client_administration/constants"
 	"os"
 	"strings"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v4"
 )
 
 type JWTData struct {
@@ -42,6 +43,7 @@ func GenerateJWTAccessToken(userId string, email string, password string, role s
 }
 
 func VeryfiToken(authHeader string)(interface{}, interface{}, error){
+   
       token := strings.Split(authHeader, " ") 
       if len(token) == 2 && strings.ToLower(token[0]) == "bearer" {
          token = token[1:]
@@ -54,7 +56,14 @@ func VeryfiToken(authHeader string)(interface{}, interface{}, error){
 
 		tokenREs, err := jwt.ParseWithClaims(stringtoken, claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte(secretKey), nil
-		})
-      
-      return tokenREs, claims, err
+		})      
+
+      userData := constants.UserLoginLocalStorage {
+         Email: claims.CustomClaims["email"],
+         Id: claims.CustomClaims["user_id"],
+         Password: claims.CustomClaims["password"],
+         Role: claims.CustomClaims["role"],
+      }
+
+      return tokenREs, userData, err
 }

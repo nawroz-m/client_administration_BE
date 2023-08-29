@@ -2,7 +2,7 @@ package router
 
 import (
 	"client_administration/controllers"
-	"client_administration/middlewares"
+	middlewares "client_administration/middleware"
 
 	"github.com/gofiber/fiber"
 )

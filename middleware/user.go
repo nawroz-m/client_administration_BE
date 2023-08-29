@@ -16,7 +16,7 @@ func IsLogedIn(c *fiber.Ctx){
 		}))
 		return
 	}
-	_, _, err := jwt.VeryfiToken(authHeader)
+	_, userInfor, err := jwt.VeryfiToken(authHeader)
 
 	if err != nil {
 		c.Status(fiber.StatusUnauthorized).Send((fiber.Map{
@@ -24,5 +24,7 @@ func IsLogedIn(c *fiber.Ctx){
 		}))
 		return
 	}
+	
+	c.Locals("user", userInfor)
 	c.Next()
 }
