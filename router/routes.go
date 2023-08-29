@@ -9,11 +9,18 @@ import (
 func SetupRoute(app *fiber.App){
 
 	/*
-	* @api {POST} /api/insertdata
+	* @api {POST} /api/register
 	* @access Public
-	* @dec Insert user information to DB
+	* @dec Register a User
 	*/
+	app.Post("/api/register",  controllers.RegisterUser)
 
-	app.Post("/api/insertdata",  controllers.RegisterUser)
+	/*
+	* @api {POST} /api/login
+	* @access Public
+	* @dec Login a User
+	*/
+	app.Post("/api/login",  controllers.LoginUser)
 
+	
 }

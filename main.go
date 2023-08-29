@@ -19,6 +19,8 @@ func main() {
 		fmt.Print("Env file is not")
 	}
 	PORT := os.Getenv("PORT")
+	secretKey := os.Getenv("KEYSECRET")
+	fmt.Print(secretKey)
     app := fiber.New()
 	router.SetupRoute(app)
 
