@@ -43,9 +43,23 @@ type UserInfoToUpdate struct {
 	PostalAddress  Address        `bson:"postaladdress,omitempty" `
 }
 
-
+type SkipLimit struct {
+	Skip int64		`bson:"skip,omitempty"`
+	Limit int64		`bson:"limit,omitempty"`
+}
 type SearchUserData struct {
-	Id string		`bson:"id,omitempty"`
-	Search string		`bson:"search,omitempty"`
-	Active bool		`bson:"active,omitempty"`
+	Id string					`bson:"id,omitempty"`
+	Search string				`bson:"search,omitempty"`
+	Active bool					`bson:"active,omitempty"`
+	ExtraParams SkipLimit		`bson:"extraParams,omitempty"`
+	Count int64		`bson:"count,omitempty"`
+
+}
+
+type SearhResponse struct {
+        Error   bool         `json:"error"`
+        Message string       `json:"message"`
+        Count   int64        `json:"count"`
+        Data    interface{} `json:"data"`
+	
 }

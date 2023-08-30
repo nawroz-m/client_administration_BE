@@ -10,7 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber"
 	"go.mongodb.org/mongo-driver/bson"
@@ -198,7 +198,9 @@ func UpdateUserInfo(c *fiber.Ctx){
 func GetUsersInfo(c *fiber.Ctx){
 	id := c.Query("id")
 	search := c.Query("search")
-	fmt.Println(id, search)
+	page := c.Query("page")
+	skip := c.Query("skip")
+	limit := c.Query("limit")
 	
 	// User information
 	userData := c.Locals("user").(constants.UserLoginLocalStorage)
@@ -212,7 +214,7 @@ func GetUsersInfo(c *fiber.Ctx){
 		// {"email",  userData.Email},
 	}
     
-	// Find a user
+	// Find a user if user is available
 	var  userInfo  model.User
 	responseErr := services.FindADoc(filter).Decode(&userInfo)
 	if responseErr != nil && userInfo.Email != "" {
@@ -222,14 +224,34 @@ func GetUsersInfo(c *fiber.Ctx){
 		 c.Status(400).Send("Not accessible, pleas check your credentioal")
         return
 	}
+
+	skipInt, _ := strconv.Atoi(skip)
+	limitInt, _ := strconv.Atoi(limit)
+	pageInt, _ := strconv.Atoi(page)
+	skipNumber := 0
+
+	// Count page to skiped
+	if skipInt > 0 {
+		skipNumber = (pageInt - 1) * limitInt
+	}else {
+		skipNumber =0
+	}
+	countFilter := bson.M{
+		"active": true,
+	}
+	//Filter to search document
 	searchFilter := constants.SearchUserData{
 		Id: id,
 		Search: search,
 		Active: true,
 	}
+	searchFilter.ExtraParams.Limit = int64(limitInt)
+	searchFilter.ExtraParams.Skip = int64(skipNumber)
 
-	// Get user 
+
+	// Create User Search Pipeline
 	pipeline := aggregatepipeline.GetUserDataForAdminPipeline(searchFilter)
+	
 	usersCollection, client := model.UserModel()
 	defer func() {
         if err := client.Disconnect(context.TODO()); err != nil {
@@ -237,21 +259,32 @@ func GetUsersInfo(c *fiber.Ctx){
         }
     }()
 
+	// Count How many documents are available
+	count, _ := usersCollection.CountDocuments(context.TODO(), countFilter)
+	searchFilter.Count = int64(count)
+
+	// Execute the pipeline with aggregate
 	cursor, err := usersCollection.Aggregate(context.TODO(), pipeline)
 
 	if err != nil {
-    // handle error
 		fmt.Println("Something wrong while aggregating")
     	return
 	}
 
+	// Map to cursor data return
 	var users []map[string]interface{}
 	if err := cursor.All(context.TODO(), &users); err != nil {
-		// handle error
-		fmt.Println("Something wrong while cursing errr")
+		fmt.Println("Something wrong while cursing")
 		return
 	}
-	jsonData, err := json.Marshal(users)
 
-    c.Status(http.StatusOK).Send(jsonData)
+	// Create Response Data Format
+	response := constants.SearhResponse {
+		Error: false,
+		Message: "success",
+		Count: count,
+		Data: users,
+	}
+
+    c.Status(200).JSON(response)
 }

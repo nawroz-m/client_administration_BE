@@ -2,29 +2,30 @@ package aggregatepipeline
 
 import (
 	"client_administration/constants"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func GetUserDataForAdminPipeline (searchFilter constants.SearchUserData) []map[string]interface{}{
-	// id := ""
-	// if searchFilter.Id != ""{
-	// 	id = searchFilter.Id
-	// }
+	
+    // Search if search params is not empty
 	search := ""
 	if searchFilter.Search != "" {
 		search = searchFilter.Search
 	}
 	active := searchFilter.Active
-
-	// IdObject, _ := utils.CreatObjectID(id)
+    
 
     pipeline := []map[string]interface{}{}
 
+    // Get all document where user is active
 	pipeline = append(pipeline, map[string]interface{}{
 		"$match": map[string]interface{}{
 			"active": active,
 		},
 	})
 
+    // Return the listed fields only
     pipeline = append(pipeline, map[string]interface{}{
         "$project": map[string]interface{}{
             "email":           1,
@@ -38,6 +39,7 @@ func GetUserDataForAdminPipeline (searchFilter constants.SearchUserData) []map[s
         },
     })
 
+    // Search key that will return value by
     pipeline = append(pipeline, map[string]interface{}{
         "$match": map[string]interface{}{
             "$or": []map[string]interface{}{
@@ -48,6 +50,18 @@ func GetUserDataForAdminPipeline (searchFilter constants.SearchUserData) []map[s
             },
         },
     })
+    
+    // Pagenation by skip and limit
+    skipNumber := searchFilter.ExtraParams.Skip
+    limitNumber := searchFilter.ExtraParams.Limit
+        if skipNumber != 0 {
+            skip := bson.M{"$skip": skipNumber}
+            pipeline = append(pipeline, skip)
+        }
+        if limitNumber != 0 {
+            limit := bson.M{"$limit": limitNumber}
+            pipeline = append(pipeline, limit)
+        }
 
     return pipeline
 }
