@@ -32,4 +32,11 @@ func SetupRoute(app *fiber.App){
 	*/
 	app.Put("/api/update", middlewares.IsLogedIn, controllers.UpdateUserInfo)
 
+	/*
+	* @api {GET} /api/users
+	* @access Private
+	* @dec GET All USERS INFO
+	*/
+	app.Get("/api/users", middlewares.IsLogedIn, controllers.GetUsersInfo)
+
 }

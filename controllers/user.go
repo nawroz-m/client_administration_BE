@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"client_administration/aggregatepipeline"
 	"client_administration/constants"
 	"client_administration/model"
 	"client_administration/services"
@@ -9,6 +10,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/gofiber/fiber"
 	"go.mongodb.org/mongo-driver/bson"
@@ -48,8 +50,9 @@ func RegisterUser(c *fiber.Ctx){
             panic(err)
         }
     }()
-
+	
 	// Inser User Data
+	doc.Active = true
 	insertResult, err := usersCollection.InsertOne(context.TODO(), doc)
 	if err != nil {
 		fmt.Print(err)
@@ -141,7 +144,7 @@ func UpdateUserInfo(c *fiber.Ctx){
 
 	// User information
 	userData := c.Locals("user").(constants.UserLoginLocalStorage)
-	objectID, err := primitive.ObjectIDFromHex(userData.Id)
+	objectID, err := utils.CreatObjectID(userData.Id)
     if err != nil {
         fmt.Println(err)
         c.Status(400).Send("Invalid ID format")
@@ -189,5 +192,66 @@ func UpdateUserInfo(c *fiber.Ctx){
 	// Update User Info
 	response := services.UpdateDocInfo(filter, update)
     c.Status(200).Send(response)
+}
+
+// Get User Info
+func GetUsersInfo(c *fiber.Ctx){
+	id := c.Query("id")
+	search := c.Query("search")
+	fmt.Println(id, search)
+	
+	// User information
+	userData := c.Locals("user").(constants.UserLoginLocalStorage)
+	objectID, err := utils.CreatObjectID(userData.Id)
+    if err != nil {
+        c.Status(400).Send("Invalid ID")
+        return
+    }
+	filter := bson.D{
+		{"_id",  objectID},
+		// {"email",  userData.Email},
+	}
     
+	// Find a user
+	var  userInfo  model.User
+	responseErr := services.FindADoc(filter).Decode(&userInfo)
+	if responseErr != nil && userInfo.Email != "" {
+		fmt.Print(responseErr)
+	}
+	if userInfo.Role != "addmin" {
+		 c.Status(400).Send("Not accessible, pleas check your credentioal")
+        return
+	}
+	searchFilter := constants.SearchUserData{
+		Id: id,
+		Search: search,
+		Active: true,
+	}
+
+	// Get user 
+	pipeline := aggregatepipeline.GetUserDataForAdminPipeline(searchFilter)
+	usersCollection, client := model.UserModel()
+	defer func() {
+        if err := client.Disconnect(context.TODO()); err != nil {
+            return
+        }
+    }()
+
+	cursor, err := usersCollection.Aggregate(context.TODO(), pipeline)
+
+	if err != nil {
+    // handle error
+		fmt.Println("Something wrong while aggregating")
+    	return
+	}
+
+	var users []map[string]interface{}
+	if err := cursor.All(context.TODO(), &users); err != nil {
+		// handle error
+		fmt.Println("Something wrong while cursing errr")
+		return
+	}
+	jsonData, err := json.Marshal(users)
+
+    c.Status(http.StatusOK).Send(jsonData)
 }

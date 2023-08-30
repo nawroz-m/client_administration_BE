@@ -27,7 +27,6 @@ func FindADoc(filter interface{})(*mongo.SingleResult){
 }
 
 // Update A Document Field
-
 func UpdateDocInfo( filter primitive.D, update primitive.D)string{
 	usersCollection, client := model.UserModel()
 	defer func() {

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/go-playground/validator/v10"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -33,3 +34,8 @@ func CheckPasswordHash(password, hash string) bool {
     return err == nil
 }
 
+
+func CreatObjectID(Id string)(primitive.ObjectID, error){
+	objectID, err := primitive.ObjectIDFromHex(Id)
+	return objectID, err
+}

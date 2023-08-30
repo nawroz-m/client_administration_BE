@@ -42,3 +42,10 @@ type UserInfoToUpdate struct {
 	Telephone  int64             `bson:"telephone,omitempty" `
 	PostalAddress  Address        `bson:"postaladdress,omitempty" `
 }
+
+
+type SearchUserData struct {
+	Id string		`bson:"id,omitempty"`
+	Search string		`bson:"search,omitempty"`
+	Active bool		`bson:"active,omitempty"`
+}
