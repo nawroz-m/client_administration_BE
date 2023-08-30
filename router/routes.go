@@ -39,4 +39,11 @@ func SetupRoute(app *fiber.App){
 	*/
 	app.Get("/api/users", middlewares.IsLogedIn, controllers.GetUsersInfo)
 
+	/*
+	* @api {GET} /api/activate
+	* @access Private
+	* @dec Active or Deactive users
+	*/
+	app.Put("/api/activate", middlewares.IsLogedIn, controllers.ActiveDeactiveUser)
+
 }

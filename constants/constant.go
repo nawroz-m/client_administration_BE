@@ -43,6 +43,12 @@ type UserInfoToUpdate struct {
 	PostalAddress  Address        `bson:"postaladdress,omitempty" `
 }
 
+type ActiveDeactive struct {
+	Id string					`bson:"id,omitempty"`
+}
+
+
+
 type SkipLimit struct {
 	Skip int64		`bson:"skip,omitempty"`
 	Limit int64		`bson:"limit,omitempty"`

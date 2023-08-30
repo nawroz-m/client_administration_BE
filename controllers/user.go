@@ -161,6 +161,11 @@ func UpdateUserInfo(c *fiber.Ctx){
 	if responseErr != nil && userInfo.Email != "" {
 		fmt.Print(responseErr)
 	}
+	if userInfo.Role != "addmin" {
+		 c.Status(400).Send("Not accessible, pleas check your credentioal")
+        return
+	}
+
 	// Update for only provided fields
 	update := bson.D{}
 	if doc.FirstName != "" {
@@ -287,4 +292,63 @@ func GetUsersInfo(c *fiber.Ctx){
 	}
 
     c.Status(200).JSON(response)
+}
+
+// Active and Deactive User
+func ActiveDeactiveUser(c *fiber.Ctx){
+	data := c.Body()
+	var doc constants.ActiveDeactive
+	// Unmarshal Json Data
+	err := utils.Unmarshal([]byte(data) , &doc)
+	if err != nil {
+        c.Status(400).Send("Invalid data format")
+        return
+    }
+
+	// User information
+	addminData := c.Locals("user").(constants.UserLoginLocalStorage)
+	AddminObjectID, err := utils.CreatObjectID(addminData.Id)
+	userObjectID, err := utils.CreatObjectID(doc.Id)
+    if err != nil {
+        c.Status(400).Send("Invalid ID format")
+        return
+    }
+	addminFilter := bson.D{
+		{"_id",  AddminObjectID},
+	}
+	userFilter := bson.D{
+		{"_id",  userObjectID},
+	}
+    
+	// Find Addmin info
+	var  addminInfo  model.User
+	responseErr := services.FindADoc(addminFilter).Decode(&addminInfo)
+	if responseErr != nil && addminInfo.Email != "" {
+		fmt.Print(responseErr)
+	}
+	if addminInfo.Role != "addmin" {
+		 c.Status(400).Send("Not accessible, pleas check your credentioal")
+        return
+	}
+
+	// Fin User info
+	var  userInfo  model.User
+	responseUserInfoErr := services.FindADoc(userFilter).Decode(&userInfo)
+	if responseUserInfoErr != nil && userInfo.Email != "" {
+		fmt.Print(responseUserInfoErr)
+	}
+	currentStatus := userInfo.Active
+
+	// Update for only provided fields
+	update := bson.D{}
+	if currentStatus == true {
+        update = append(update, bson.E{"active", false})
+    }
+	if currentStatus == false {
+        update = append(update, bson.E{"active", true})
+    }
+    
+	// Update User Info
+	response := services.UpdateDocInfo(userFilter, update)
+    c.Status(200).Send(response)
 }
