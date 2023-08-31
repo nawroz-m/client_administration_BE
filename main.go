@@ -1,14 +1,17 @@
 package main
 
 import (
+	"client_administration/router"
 	"fmt"
 	"os"
 
+	"github.com/gofiber/cors"
 	"github.com/gofiber/fiber"
-	"github.com/joho/godotenv"
 
-	"client_administration/router"
+	// gofiber/corss
+	"github.com/joho/godotenv"
 )
+
 
 
 
@@ -19,9 +22,12 @@ func main() {
 		fmt.Print("Env file is not")
 	}
 	PORT := os.Getenv("PORT")
-	secretKey := os.Getenv("KEYSECRET")
-	fmt.Print(secretKey)
     app := fiber.New()
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"*"},
+        AllowMethods:     []string{"*"},
+       
+	}))
 	router.SetupRoute(app)
 
     app.Listen(PORT)
