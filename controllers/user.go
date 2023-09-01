@@ -144,14 +144,32 @@ func UpdateUserInfo(c *fiber.Ctx){
 
 	// User information
 	userData := c.Locals("user").(constants.UserLoginLocalStorage)
+
+	/// Create Addmin User Object Id
 	objectID, err := utils.CreatObjectID(userData.Id)
     if err != nil {
         fmt.Println(err)
         c.Status(400).Send("Invalid ID format")
         return
     }
+
+
 	filter := bson.D{
 		{"_id",  objectID},
+		// {"email",  userData.Email},
+	}
+
+	/// Create  User Object Id
+	UserObjectID, err := utils.CreatObjectID(doc.Id)
+    if err != nil {
+        fmt.Println(err)
+        c.Status(400).Send("Invalid ID format")
+        return
+    }
+
+	// Update filter
+	filterUpdateUser := bson.D{
+		{"_id",  UserObjectID},
 		// {"email",  userData.Email},
 	}
     
@@ -195,7 +213,7 @@ func UpdateUserInfo(c *fiber.Ctx){
     }
 
 	// Update User Info
-	response := services.UpdateDocInfo(filter, update)
+	response := services.UpdateDocInfo(filterUpdateUser, update)
     c.Status(200).Send(response)
 }
 

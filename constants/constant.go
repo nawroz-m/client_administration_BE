@@ -36,6 +36,7 @@ type Address struct {
 }
 
 type UserInfoToUpdate struct {
+	Id  string             `bson:"id,omitempty" `
 	FirstName  string             `bson:"firstname,omitempty" `
 	LastName  string             `bson:"lastname,omitempty" `
 	Email  string             `bson:"email,omitempty" `
